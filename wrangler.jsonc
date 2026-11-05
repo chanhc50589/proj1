@@ -1,0 +1,34 @@
+// Root-level Worker configuration. Deployable via "Deploy to Cloudflare" and `wrangler deploy`.
+// No resource IDs are required: the AI binding and the SQLite-backed Durable Object are
+// provisioned automatically by the deploy flow. Do not remove the "migrations" block after
+// first deployment: SQLite-backed Durable Object classes have a stable ID.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "memdoor-team-solve",
+  "main": "index.js",
+  "compatibility_date": "2026-11-04",
+
+  // Static assets: the ONLY asset directory is ./public and it contains ONLY browser.js.
+  // run_worker_first: true sends every request through the Worker so it can attach
+  // security headers uniformly and keep all API routing in one place.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  // Workers AI binding (server-side use only).
+  "ai": {
+    "binding": "AI"
+  },
+
+  // Durable Object for run coordination + SQLite persistence.
+  "durable_objects": {
+    "bindings": [
+      { "name": "RUN_COORDINATOR", "class_name": "RunCoordinator" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["RunCoordinator"] }
+  ]
+}

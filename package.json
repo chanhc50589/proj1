@@ -1,0 +1,23 @@
+{
+  "name": "memdoor-team-solve",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "memdoor team-solve role workflow as a Cloudflare Workers browser app (vanilla JS, Durable Object + SQLite, SSE).",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --test tests.js",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20251022.0",
+    "@types/node": "24.5.2",
+    "typescript": "5.9.2",
+    "wrangler": "4.42.0"
+  }
+}
