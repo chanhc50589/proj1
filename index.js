@@ -827,6 +827,7 @@ async function handleRunSubmission(request, env) {
       body: JSON.stringify(v.value),
     });
   } catch (e) {
+    console.log(mapAiError(e).code)
     log("do_start_failed", { code: mapAiError(e).code });
     return json(500, { error: "internal_error" });
   }
