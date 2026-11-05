@@ -821,7 +821,7 @@ async function handleRunSubmission(request, env) {
   const stub = env.RUN_COORDINATOR.get(env.RUN_COORDINATOR.idFromName("singleton"));
   try {
     // The DO response IS the SSE stream for the whole run (single request, single stream).
-    return await stub.fetch("https://run-coordinator.internal/start", {
+    return await stub.fetch("/start", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(v.value),
@@ -834,7 +834,7 @@ async function handleRunSubmission(request, env) {
 
 async function doRequest(env, path, init) {
   const stub = env.RUN_COORDINATOR.get(env.RUN_COORDINATOR.idFromName("singleton"));
-  return stub.fetch(`https://run-coordinator.internal${path}`, init);
+  return stub.fetch(`${path}`, init);
 }
 
 async function handleListRuns(request, env) {
