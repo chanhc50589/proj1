@@ -645,7 +645,7 @@ const HTML_SHELL = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>memdoor team-solve1</title>
+<title>memdoor team-solve</title>
 <style>
 :root { color-scheme: light dark; }
 * { box-sizing: border-box; }
@@ -820,24 +820,21 @@ async function handleRunSubmission(request, env) {
 
   const stub = env.RUN_COORDINATOR.get(env.RUN_COORDINATOR.idFromName("singleton"));
   try {
-    console.log("log1: " + JSON.stringify(v.value))
     // The DO response IS the SSE stream for the whole run (single request, single stream).
-    return await stub.fetch("/start", {
+    return await stub.fetch("https://run-coordinator.internal/start", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(v.value),
     });
   } catch (e) {
-    
-    const err = log("do_start_failed", { code: mapAiError(e).code });
-    console.log("log2: " + err + e)
-    return json(500, { error: `internal_error: ${err}` });
+    log("do_start_failed", { code: mapAiError(e).code });
+    return json(500, { error: "internal_error" });
   }
 }
 
 async function doRequest(env, path, init) {
   const stub = env.RUN_COORDINATOR.get(env.RUN_COORDINATOR.idFromName("singleton"));
-  return stub.fetch(path, init);
+  return stub.fetch(`https://run-coordinator.internal${path}`, init);
 }
 
 async function handleListRuns(request, env) {
@@ -848,8 +845,8 @@ async function handleListRuns(request, env) {
   try {
     return await doRequest(env, "/runs", { method: "GET" });
   } catch (e) {
-    const err = log("do_history_failed", { code: mapAiError(e).code });
-    return json(500, { error: `internal_error: ${err}` });
+    log("do_history_failed", { code: mapAiError(e).code });
+    return json(500, { error: "internal_error" });
   }
 }
 
@@ -865,8 +862,8 @@ async function handleGetRun(request, env, url) {
   try {
     return await doRequest(env, `/runs/get?id=${encodeURIComponent(id)}`, { method: "GET" });
   } catch (e) {
-    const err = log("do_history_failed", { code: mapAiError(e).code });
-    return json(500, { error: `internal_error: ${err}` });
+    log("do_history_failed", { code: mapAiError(e).code });
+    return json(500, { error: "internal_error" });
   }
 }
 
@@ -901,8 +898,8 @@ export default {
       }
       return applySecurityHeaders(json(404, { error: "not_found" }));
     } catch (e) {
-      const err = log("worker_error", { path: url.pathname, code: mapAiError(e).code });
-      return applySecurityHeaders(json(500, { error: `internal_error: ${err}` }));
+      log("worker_error", { path: url.pathname, code: mapAiError(e).code });
+      return applySecurityHeaders(json(500, { error: "internal_error" }));
     }
   },
 };
@@ -969,8 +966,8 @@ export class RunCoordinator {
       if (request.method === "GET" && url.pathname === "/runs/get") return await this.#getRun(url);
       return json(404, { error: "not_found" });
     } catch (e) {
-      const err = log("do_error", { path: url.pathname, code: mapAiError(e).code });
-      return json(500, { error: `internal_error: ${err}` });
+      log("do_error", { path: url.pathname, code: mapAiError(e).code });
+      return json(500, { error: "internal_error" });
     }
   }
 
