@@ -4,7 +4,7 @@
 // first deployment: SQLite-backed Durable Object classes have a stable ID.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "memdoor-team-solve",
+  "name": "proj1",
   "main": "index.js",
   "compatibility_date": "2026-11-04",
 
