@@ -816,7 +816,7 @@ async function handleRunSubmission(request, env) {
 
   const v = validateSubmission(parsed.body);
   if (!v.ok) return json(400, { error: "invalid_input", message: v.error });
-  if (!env.RUN_COORDINATOR) return json(500, { error: "internal_error" });
+  if (!env.RUN_COORDINATOR) return json(500, { error: "internal_error: !env.RUN_COORDINATOR" });
 
   const stub = env.RUN_COORDINATOR.get(env.RUN_COORDINATOR.idFromName("singleton"));
   try {
@@ -846,8 +846,8 @@ async function handleListRuns(request, env) {
   try {
     return await doRequest(env, "/runs", { method: "GET" });
   } catch (e) {
-    log("do_history_failed", { code: mapAiError(e).code });
-    return json(500, { error: "internal_error" });
+    const err = log("do_history_failed", { code: mapAiError(e).code });
+    return json(500, { error: `internal_error: ${err}, ${e}` });
   }
 }
 
@@ -863,8 +863,8 @@ async function handleGetRun(request, env, url) {
   try {
     return await doRequest(env, `/runs/get?id=${encodeURIComponent(id)}`, { method: "GET" });
   } catch (e) {
-    log("do_history_failed", { code: mapAiError(e).code });
-    return json(500, { error: "internal_error" });
+    const err = log("do_history_failed", { code: mapAiError(e).code });
+    return json(500, { error: `internal_error: ${err}, ${e}` });
   }
 }
 
@@ -899,8 +899,8 @@ export default {
       }
       return applySecurityHeaders(json(404, { error: "not_found" }));
     } catch (e) {
-      log("worker_error", { path: url.pathname, code: mapAiError(e).code });
-      return applySecurityHeaders(json(500, { error: "internal_error" }));
+      const err = log("worker_error", { path: url.pathname, code: mapAiError(e).code });
+      return applySecurityHeaders(json(500, { error: `internal_error: ${err}, ${e}` }));
     }
   },
 };
@@ -967,8 +967,8 @@ export class RunCoordinator {
       if (request.method === "GET" && url.pathname === "/runs/get") return await this.#getRun(url);
       return json(404, { error: "not_found" });
     } catch (e) {
-      log("do_error", { path: url.pathname, code: mapAiError(e).code });
-      return json(500, { error: "internal_error" });
+      const err = log("do_error", { path: url.pathname, code: mapAiError(e).code });
+      return json(500, { error: `internal_error: ${err}, ${e}` });
     }
   }
 
