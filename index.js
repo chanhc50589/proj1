@@ -526,6 +526,7 @@ class WorkflowEngine {
     const t0 = Date.now();
     let text;
     try {
+      this.emit("emit", { content: SYSTEM_ADAPTER, content: prompt });
       text = await streamAiToText(
         this.ai, model,
         [{ role: "system", content: SYSTEM_ADAPTER }, { role: "user", content: prompt }],
