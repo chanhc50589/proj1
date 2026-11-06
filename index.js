@@ -820,7 +820,7 @@ async function handleRunSubmission(request, env) {
 
   const stub = env.RUN_COORDINATOR.get(env.RUN_COORDINATOR.idFromName("singleton"));
   try {
-    console.log("log1: " + v.value)
+    console.log("log1: " + JSON.stringify(v.value))
     // The DO response IS the SSE stream for the whole run (single request, single stream).
     return await stub.fetch("/start", {
       method: "POST",
@@ -828,8 +828,9 @@ async function handleRunSubmission(request, env) {
       body: JSON.stringify(v.value),
     });
   } catch (e) {
-    console.log("log2: " + mapAiError(e).code)
+    
     const err = log("do_start_failed", { code: mapAiError(e).code });
+    console.log("log2: " + err)
     return json(500, { error: `internal_error: ${err}` });
   }
 }
