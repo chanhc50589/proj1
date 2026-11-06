@@ -465,10 +465,14 @@ async function streamAiToText(ai, model, messages, maxTokens, onDelta, signal) {
       return;
     }
 
-    if (typeof obj.response === "string" && obj.response.length > 0) {
-      full += obj.response;
-      if (onDelta) onDelta(obj.response);
-    }
+const delta = obj.choices?.[0]?.delta ?? {};
+const content = delta.content ?? obj.response;
+
+if (typeof content === "string" && content.length > 0) {
+  full += content;
+  if (onDelta) onDelta(content);
+}
+
     // reasoning_content / thinking_blocks are intentionally ignored.
   };
 
