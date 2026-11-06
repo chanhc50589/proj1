@@ -739,15 +739,23 @@ function json(status, obj) {
 }
 
 function applySecurityHeaders(resp) {
-  const out = new Response(resp.body, resp);
-  const h = out.headers;
-  h.set("content-security-policy",
-    "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
-  h.set("x-content-type-options", "nosniff");
-  h.set("referrer-policy", "no-referrer");
-  h.set("x-frame-options", "DENY");
-  return resp;
+  const headers = new Headers(resp.headers);
+
+  headers.set(
+    "content-security-policy",
+    "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+  );
+  headers.set("x-content-type-options", "nosniff");
+  headers.set("referrer-policy", "no-referrer");
+  headers.set("x-frame-options", "DENY");
+
+  return new Response(resp.body, {
+    status: resp.status,
+    statusText: resp.statusText,
+    headers,
+  });
 }
+
 
 function requireSameOrigin(request) {
   const origin = request.headers.get("origin");
