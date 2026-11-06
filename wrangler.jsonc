@@ -22,6 +22,10 @@
     "binding": "AI"
   },
 
+  "vars": {
+    "OPERATOR_PASSWORD": "1234"
+  },
+
   // Durable Object for run coordination + SQLite persistence.
   "durable_objects": {
     "bindings": [
