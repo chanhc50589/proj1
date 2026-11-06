@@ -436,40 +436,80 @@ ${truncateUtf8(reviewText, CAPS.MAX_SECTION_APPEND_CHARS)}`;
 // ---------------------------------------------------------------------------
 
 async function streamAiToText(ai, model, messages, maxTokens, onDelta, signal) {
-  const resp = await ai.run(model, { messages, stream: true, max_tokens: maxTokens });
+  const resp = await ai.run(model, {
+    messages,
+    stream: true,
+    max_tokens: maxTokens,
+  });
+
   if (!resp || typeof resp.getReader !== "function") {
     throw new Error("model returned no streaming response");
   }
+
   const reader = resp.getReader();
   const dec = new TextDecoder();
-  let buf = "", full = "";
+  let buf = "";
+  let full = "";
+
+  const processLine = (rawLine) => {
+    const line = rawLine.replace(/\r$/, "");
+    if (!line.startsWith("data:")) return;
+
+    const data = line.slice(5).trim();
+    if (!data || data === "[DONE]") return;
+
+    let obj;
+    try {
+      obj = JSON.parse(data);
+    } catch {
+      return;
+    }
+
+    if (typeof obj.response === "string" && obj.response.length > 0) {
+      full += obj.response;
+      if (onDelta) onDelta(obj.response);
+    }
+    // reasoning_content / thinking_blocks are intentionally ignored.
+  };
+
   try {
     for (;;) {
-      if (signal && signal.aborted) { try { await reader.cancel(); } catch { /* ignore */ } throw new WorkflowAbort(); }
+      if (signal && signal.aborted) {
+        try {
+          await reader.cancel();
+        } catch {
+          // Ignore cancellation errors.
+        }
+        throw new WorkflowAbort();
+      }
+
       const { done, value } = await reader.read();
       if (done) break;
+
       buf += dec.decode(value, { stream: true });
+
       let nl;
       while ((nl = buf.indexOf("\n")) !== -1) {
-        const line = buf.slice(0, nl).replace(/\r$/, "");
+        const line = buf.slice(0, nl);
         buf = buf.slice(nl + 1);
-        if (!line.startsWith("data:")) continue;
-        const data = line.slice(5).trim();
-        if (!data || data === "[DONE]") continue;
-        let obj;
-        try { obj = JSON.parse(data); } catch { continue; }
-        if (typeof obj.response === "string" && obj.response.length > 0) {
-          full += obj.response;
-          if (onDelta) onDelta(obj.response);
-        }
-        // reasoning_content / thinking_blocks: skipped, never surfaced or stored
+        processLine(line);
       }
     }
+
+    // Flush the decoder and process a final line that may lack a newline.
+    buf += dec.decode();
+    if (buf) processLine(buf);
+
+    return full;
   } finally {
-    try { reader.releaseLock(); } catch { /* ignore */ }
+    try {
+      reader.releaseLock();
+    } catch {
+      // Ignore release errors.
+    }
   }
-  return full;
 }
+
 
 // ---------------------------------------------------------------------------
 // Workflow engine — one instance per run, executes inside the Durable Object.
