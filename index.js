@@ -319,8 +319,8 @@ export function buildPlannerPrompt(task, runId) {
 Do not change the task or its requirements to make it easier.
 
 Initialize the notes for THIS run. Your entire reply IS the initial run ledger. Give it a title, include the run identifier RUN-${String(runId).slice(0, 8)}, and create separate headings for Plan, Proposal A, Proposal B, Solver decision, Review, and Repair. Put the unique literal marker ${PROPOSAL_A_MARKER} under Proposal A and ${PROPOSAL_B_MARKER} under Proposal B, each on its own line.
-Leave enough blank lines so the ledger is at least 50 lines long. Parallel workers will add notes at distinct markers using small patches; do not overwrite the ledger.
-The workflow engine verifies that the ledger contains both markers, each exactly once, and that it is at least 50 lines long. Communicate only through this ledger. Do not rely on prior conversation and do not delegate to other agents.
+Leave enough blank lines so the ledger is at least 10 lines long. Parallel workers will add notes at distinct markers using small patches; do not overwrite the ledger.
+The workflow engine verifies that the ledger contains both markers, each exactly once, and that it is at least 10 lines long. Communicate only through this ledger. Do not rely on prior conversation and do not delegate to other agents.
 
 TASK:
 ${task}`;
@@ -583,6 +583,7 @@ class WorkflowEngine {
       this.internal.abort(); // stop any sibling parallel stream immediately
       throw new WorkflowFailure(mapped.code); // stop the run; NEVER retry quota/capacity errors
     }
+    this.emit("role_completed", { chars: text.length });
     log("role_completed", { runId: this.runId, role: roleKey, model, ms: Date.now() - t0, chars: text.length });
     this.persistEvent("artifact", { role: roleKey, content: truncateUtf8(text, CAPS.MAX_ARTIFACT_STORED_CHARS) });
     this.emitArtifact(roleKey, text);
