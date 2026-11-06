@@ -739,7 +739,8 @@ function json(status, obj) {
 }
 
 function applySecurityHeaders(resp) {
-  const h = resp.headers;
+  const out = new Response(resp.body, resp);
+  const h = out.headers;
   h.set("content-security-policy",
     "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
   h.set("x-content-type-options", "nosniff");
